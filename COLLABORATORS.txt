@@ -1,0 +1,7 @@
+(This is an example. Please edit accordingly.)
+
+Name: Victor Arsenescu
+I spent about 30 min on split_test_train, about 45 min on euclidian distance.
+We talked about the definition of Euclidean distance.
+Did the assignment independently - did not ask for help/clarification beyond
+a piazza question on how to download stuff.
