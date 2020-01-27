@@ -1,99 +1,60 @@
-'''
-hw1.py
-Author: TODO
-
-Tufts COMP 135 Intro ML
-
-'''
-
 import numpy as np
+import math
 
-def split_into_train_and_test(x_all_LF, frac_test=0.5, random_state=None):
-    ''' Divide provided array into train and test set along first dimension
-
-    User can provide a random number generator object to ensure reproducibility.
-
-    Args
-    ----
-    x_all_LF : 2D array, shape = (n_total_examples, n_features) (L, F)
-        Each row is a feature vector
-    frac_test : float, fraction between 0 and 1
-        Indicates fraction of all L examples to allocate to the "test" set
-    random_state : np.random.RandomState instance or integer or None
-        If int, code will create RandomState instance with provided value as seed
-        If None, defaults to the current numpy random number generator np.random
-
-    Returns
-    -------
-    x_train_MF : 2D array, shape = (n_train_examples, n_features) (M, F)
-        Each row is a feature vector
-        Should be a separately allocated array, NOT a view of any input array
-
-    x_test_NF : 2D array, shape = (n_test_examples, n_features) (N, F)
-        Each row is a feature vector
-        Should be a separately allocated array, NOT a view of any input array
-
-    Post Condition
-    --------------
-    This function should be side-effect free. The provided input array x_all_LF
-    should not change at all (not be shuffled, etc.)
-
-    Examples
-    --------
-    >>> x_LF = np.eye(10)
-    >>> xcopy_LF = x_LF.copy() # preserve what input was before the call
-    >>> train_MF, test_NF = split_into_train_and_test(
-    ...     x_LF, frac_test=0.3, random_state=np.random.RandomState(0))
-    >>> train_MF.shape
-    (7, 10)
-    >>> test_NF.shape
-    (3, 10)
-    >>> print(train_MF)
-    [[0. 0. 1. 0. 0. 0. 0. 0. 0. 0.]
-     [0. 0. 0. 0. 0. 0. 0. 0. 1. 0.]
-     [0. 0. 0. 0. 1. 0. 0. 0. 0. 0.]
-     [0. 0. 0. 0. 0. 0. 0. 0. 0. 1.]
-     [0. 1. 0. 0. 0. 0. 0. 0. 0. 0.]
-     [0. 0. 0. 0. 0. 0. 1. 0. 0. 0.]
-     [0. 0. 0. 0. 0. 0. 0. 1. 0. 0.]]
-    >>> print(test_NF)
-    [[0. 0. 0. 1. 0. 0. 0. 0. 0. 0.]
-     [1. 0. 0. 0. 0. 0. 0. 0. 0. 0.]
-     [0. 0. 0. 0. 0. 1. 0. 0. 0. 0.]]
-
-    ## Verify that input array did not change due to function call
-    >>> np.allclose(x_LF, xcopy_LF)
-    True
-
-    References
-    ----------
-    For more about RandomState, see:
-    https://stackoverflow.com/questions/28064634/random-state-pseudo-random-numberin-scikit-learn
-    '''
-    if random_state is None:
-        random_state = np.random
-    ## TODO fixme
-    return None, None
-
-
+# For 3D Arrays: (HEIGHT, WIDTH, DEPTH)
 def calc_k_nearest_neighbors(data_NF, query_QF, K=1):
-    ''' Compute and return k-nearest neighbors under Euclidean distance
+	the_hood = np.zeros((query_QF.shape[0], K, query_QF.shape[1]))
+	for query in range(query_QF.shape[0]):
+		distances = [(0,0) for x in range(data_NF.shape[0])]
+		for instance in range(data_NF.shape[0]):
+			d = euclidean_distance(query_QF[query], data_NF[instance], query_QF.shape[1])
+			distances[instance] = (d,instance)
+		distances = sorted(distances, key= lambda x:x[0])
+		for i in range(K):
+			neighbor_row = data_NF[distances[i][1]] # now an F dimensional 1D array
+			the_hood[query][i] = neighbor_row
+	return the_hood
 
-    Any ties in distance may be broken arbitrarily.
+# shape reported as (num_rows, num_cols)
+def split_into_train_and_test(x_all_LF, frac_test=0.5, random_state=None):
+	if type(random_state) == int:
+		random_state = np.random.RandomState(random_state)
+	elif type(random_state) == None:
+		random_state = np.random
+	num_training_instances = int((1 - frac_test) * x_all_LF.shape[0])  # floors it
+	training_set = np.zeros((num_training_instances, x_all_LF.shape[1]))
+	#test_set = np.zeros(((x_all_LF.shape[0] - num_training_instances), x_all_LF.shape[1]))
+	test_set = x_all_LF.copy()
+	for feature in range(num_training_instances):
+		training_row = random_state.randint(0, high= test_set.shape[0])
+		training_set[feature] = x_all_LF[training_row]
+		test_set = np.delete(test_set, training_row, axis=0) # non-global
+	return (training_set, test_set)
 
-    Args
-    ----
-    data_NF : 2D array, shape = (n_examples, n_features) aka (N, F)
-        Each row is a feature vector for one example in dataset
-    query_QF : 2D array, shape = (n_queries, n_features) aka (Q, F)
-        Each row is a feature vector whose neighbors we want to find
-    K : int, positive (must be >= 1)
-        Number of neighbors to find per query vector
+# inputs are f-dimensional vectors
+def euclidean_distance(x1, x2, f):
+	sum = 0
+	for i in range(f):
+		sum += pow((x1[i] - x2[i]), 2)
+	return math.sqrt(sum)
+	
+'''
+def output1(train, test):
+	print(train.shape)
+	print(test.shape)
+	print(train)
+	print(test)
 
-    Returns
-    -------
-    neighb_QKF : 3D array, (n_queries, n_neighbors, n_feats) (Q, K, F)
-        Entry q,k is feature vector of the k-th neighbor of the q-th query
-    '''
-    # TODO fixme
-    return None
+def output2(hood):
+	print(hood.shape)
+	print(hood)
+
+if __name__ == '__main__':
+	x_LF = np.eye(10)
+	xcopy_LF = x_LF.copy()
+	train_MF, test_NF = split_into_train_and_test(x_LF, frac_test=0.3, random_state=np.random.RandomState(0))
+	#output1(train_MF, test_NF)
+	print(np.allclose(x_LF, xcopy_LF))
+	neighb_QKF = calc_k_nearest_neighbors(train_MF, test_NF)
+	output2(neighb_QKF)
+'''
